@@ -60,7 +60,7 @@ const GameRow = (props: { rowNum: number }): JSX.Element => {
         className={clsx({'invalid-guess': state.selectedInvalidWord && isCurrentGuess}, "grid grid-cols-5 gap-1")}>
         {[0, 1, 2, 3, 4].map(it => <GameRowLetter
             key={it}
-            index= {it}
+            index={it}
             letterState={getLetterDisplayState(rowNum, it, state)}
             letter={state?.guesses?.[rowNum]?.[it] ?? ' '}/>)}
     </div>
@@ -97,6 +97,7 @@ export interface AppAction {
     type: string;
     word?: string;
     id?: string;
+    newState?: KeyEntryState
 }
 
 interface AddWordAction extends AppAction {
@@ -131,7 +132,6 @@ const EndModal = (props: { clear: () => void, endState: KeyEntryState }) => {
             'active': '⬜'
         }
 
-        const wordIndices = lettersToIndex(endState.word)
         const resultsStr = `Worduel ${endState.lost ? 'x' : getCurrentGuess(endState.guesses)}/6`
         const emojiStr = Object.values(endState.guesses).map((guess, row) => guess.map((it, idx) => {
             return emoji[getLetterDisplayState(row, idx, endState)]
@@ -196,11 +196,25 @@ const getLetterStatuses = (state: KeyEntryState): Record<string, LetterStatus> =
     }, {})
 }
 
+const saveToLocalStorage = <T, U>(fun: (state: T, action: U) => T): (state: T, action: U) => T => {
+    return (state, action) => {
+        const newState = fun(state, action);
+        console.log(newState);
+        if ('id' in newState) {
+            const typedState = newState as unknown as KeyEntryState;
+            if(typedState.id){
+                window.localStorage.setItem(typedState.id, JSON.stringify(state))
+            }
+        }
+        return newState;
+    }
+}
+
 export function PlayGame() {
     const params = useParams();
     const [end, setEnd] = useState(false);
     const [modalDismissed, setModalDismissed] = useState(false);
-    const [state, dispatch] = useReducer<(state: KeyEntryState, action: KeyEntryAction | AppAction) => KeyEntryState>((state, action) => {
+    const [state, dispatch] = useReducer<(state: KeyEntryState, action: KeyEntryAction | AppAction) => KeyEntryState>(saveToLocalStorage((state, action) => {
         const currentIdx = getCurrentGuess(state.guesses);
         if ('key' in action) {
             if (end) {
@@ -270,22 +284,39 @@ export function PlayGame() {
                     id: action.id,
                     word: action?.word?.split('') ?? []
                 }
+            } else if (action.type === 'LOAD_STATE') {
+                return {
+                    ...state,
+                    ...action.newState
+                }
             }
         }
         return state;
-    }, {guesses: [], word: 'aloof'.split(''), modalActive: false, letterStatuses: {}})
+    }), {guesses: [], word: 'aloof'.split(''), modalActive: false, letterStatuses: {}})
 
 
     useEffect(() => {
-        if(params.id){
+        if (params.id) {
             getDoc(doc(db, "words", params.id))
                 .then(snapshot => {
-                    if(snapshot.exists()){
+                    if (snapshot.exists()) {
                         dispatch({type: 'SET_WORD', word: snapshot.data().word, id: params.id})
                     }
                 })
         }
     }, [])
+
+    useEffect(() => {
+        if (params.id) {
+            const item = window.localStorage.getItem(params.id);
+            if (item) {
+                dispatch({
+                    type: 'LOAD_STATE',
+                    newState: JSON.parse(item) as KeyEntryState
+                });
+            }
+        }
+    }, [params.id])
 
     return (
         <KeyEntryContext.Provider value={[state, dispatch]}>

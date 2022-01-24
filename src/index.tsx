@@ -10,6 +10,9 @@ import {initializeApp} from "firebase/app";
 import {getAnalytics} from "firebase/analytics";
 import {getFirestore} from 'firebase/firestore';
 
+import LogRocket from 'logrocket';
+LogRocket.init('0umj27/worduel');
+
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {

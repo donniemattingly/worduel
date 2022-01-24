@@ -15,7 +15,6 @@ export interface KeyEntryAction {
 const KeyboardKey = (props: { keyName: string, context: KeyboardContext }) => {
     const {keyName, context} = props;
     const [state, dispatch] = useContext(context);
-    console.log(state.letterStatuses[keyName])
     return <div onClick={() => dispatch({key: keyName})}
                 className={clsx(
                     "text-md md:text-2xl active:bg-stone-500 py-4 px-[2.5vw] md:px-4 m-[.2rem]",
