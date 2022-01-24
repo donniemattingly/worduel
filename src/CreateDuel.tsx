@@ -31,6 +31,7 @@ const WordEntry = () => {
             className={clsx({'invalid-guess': state.invalidWord}, "grid grid-cols-5 gap-1 h-[69px] md:h-[75px]")}>
             {[0, 1, 2, 3, 4].map(it => <GameRowLetter
                 key={it}
+                index={it}
                 letterState={'active'}
                 letter={state.word[it] ?? ' '}
             />)
