@@ -42,6 +42,33 @@ html {
     animation-name: PopIn;
     animation-duration: 100ms;
 }
+.inactive {
+    transition-property: all;
+    animation-name: FlipFull;
+    animation-duration: 400ms;
+}
+.i0.inactive {
+    transition-delay: 200ms;
+}
+.i1.inactive {
+    animation-delay: 200ms;
+    transition-delay: 400ms;
+}
+.i2.inactive {
+    animation-delay: 400ms;
+    transition-delay: 600ms;
+}
+.i3.inactive {
+    animation-delay: 600ms;
+    transition-delay: 800ms;
+}
+.i4.inactive {
+    animation-delay: 800ms;
+    transition-delay: 1000ms;
+}
+
+
+
 
 @keyframes PopIn {
     from {
@@ -79,4 +106,18 @@ html {
     100% {
         transform: rotateX(0);
     }
+}
+
+@keyframes FlipFull {
+
+    0% {
+        transform: rotateX(0);
+    }
+    50% {
+        transform: rotateX(-90deg);
+    }
+    100% {
+        transform: rotateX(0);
+    }
+
 }

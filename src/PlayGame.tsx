@@ -16,8 +16,8 @@ import {doc, getDoc} from 'firebase/firestore';
 import {db} from './index';
 
 type LetterState = 'active' | 'incorrect' | 'partial' | 'correct';
-export const GameRowLetter = (props: { letterState: LetterState, letter: string }) => {
-    const {letterState, letter} = props;
+export const GameRowLetter = (props: { letterState: LetterState, letter: string, index: number }) => {
+    const {letterState, letter, index} = props;
     return <span
         className={clsx({
                 'border-4 border-white': letterState === 'active',
@@ -25,6 +25,12 @@ export const GameRowLetter = (props: { letterState: LetterState, letter: string 
                 'bg-yellow-600': letterState === 'partial',
                 'bg-emerald-600': letterState === 'correct',
                 'pop': letter !== ' ',
+                'inactive': letterState !== 'active',
+                'i0': index === 0,
+                'i1': index === 1,
+                'i2': index === 2,
+                'i3': index === 3,
+                'i4': index === 4,
             },
             "rounded-md w-full h-full text-4xl uppercase font-bold leading-9 text-center p-3  inline-flex justify-center items-center")}>
         <span>{letter.length === 1 ? letter : ' '}</span>
@@ -54,6 +60,7 @@ const GameRow = (props: { rowNum: number }): JSX.Element => {
         className={clsx({'invalid-guess': state.selectedInvalidWord && isCurrentGuess}, "grid grid-cols-5 gap-1")}>
         {[0, 1, 2, 3, 4].map(it => <GameRowLetter
             key={it}
+            index= {it}
             letterState={getLetterDisplayState(rowNum, it, state)}
             letter={state?.guesses?.[rowNum]?.[it] ?? ' '}/>)}
     </div>
