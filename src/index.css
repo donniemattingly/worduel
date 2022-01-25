@@ -111,7 +111,6 @@ html {
 
     0% {
         transform: rotateX(0);
-        background-color: rgba(0,0,0,0);
     }
     50% {
         transform: rotateX(-90deg);
