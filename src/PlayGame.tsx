@@ -192,18 +192,17 @@ const EndModal = (props: { clear: () => void, endState: KeyEntryState }) => {
     </div>
 }
 
-const lettersToIndex = (arr: string[]): Record<string, number> => arr.reduce((acc, val, idx) => ({
-    ...acc,
-    [val]: idx
-}), {})
 const getLetterStatuses = (state: KeyEntryState): Record<string, LetterStatus> => {
-    const wordLettersToIndex = lettersToIndex(state.word)
-    const letterGuessesByIndex = Object.values(state.guesses).map(it => lettersToIndex(it)).flatMap(it => Object.entries(it));
+    
+    const letterGuessesByIndex = Object.values(state.guesses).flatMap(guess => guess.map((letter, idx) => ({letter, idx})))
 
-    return letterGuessesByIndex.reduce((acc, [letter, idx]) => {
-        if (wordLettersToIndex[letter] === idx) {
+    return letterGuessesByIndex.reduce<Record<string, LetterStatus>>((acc, {letter, idx}) => {
+        if(acc[letter] === 'correct') {
+            return acc;
+        }
+        if (state.word[idx] === letter) {
             return {...acc, [letter]: 'correct'}
-        } else if (!!wordLettersToIndex[letter]) {
+        } else if (state.word.includes(letter)) {
             return {...acc, [letter]: 'partial'}
         } else {
             return {...acc, [letter]: 'incorrect'}
@@ -214,7 +213,6 @@ const getLetterStatuses = (state: KeyEntryState): Record<string, LetterStatus> =
 const saveToLocalStorage = <T, U>(fun: (state: T, action: U) => T): (state: T, action: U) => T => {
     return (state, action) => {
         const newState = fun(state, action);
-        console.log(newState);
         if ('id' in newState) {
             const typedState = newState as unknown as KeyEntryState;
             if(typedState.id){
