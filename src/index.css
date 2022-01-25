@@ -43,7 +43,6 @@ html {
     animation-duration: 100ms;
 }
 .inactive {
-    transition-property: all;
     animation-name: FlipFull;
     animation-duration: 400ms;
 }
@@ -112,12 +111,14 @@ html {
 
     0% {
         transform: rotateX(0);
+        background-color: rgba(0,0,0,0);
     }
     50% {
         transform: rotateX(-90deg);
     }
     100% {
         transform: rotateX(0);
+        border-width: 0;
     }
 
 }
