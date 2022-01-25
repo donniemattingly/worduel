@@ -58,8 +58,8 @@ const getLetterDisplayState = (rowNum: number, charNum: number, state: KeyEntryS
             const incorrectIndexes = guess.map((_l, i) => i)
                 .filter(i => guess[i] === guess[charNum])
                 .filter(i => guess[i] !== state.word[i]);
-            
-            if((incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity >= charNum)) return 'partial';
+            console.log('chad', incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity, charNum);
+            if((incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity) >= charNum) return 'partial';
 
             return 'incorrect';
 
