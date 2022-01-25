@@ -44,10 +44,25 @@ const getLetterDisplayState = (rowNum: number, charNum: number, state: KeyEntryS
         const guess = state.guesses[rowNum]
         if (guess[charNum] === state.word[charNum]) {
             return 'correct'
-        } else if (state.word.includes(guess[charNum])) {
-            return 'partial'
+        } else if (!state.word.includes(guess[charNum])) {
+            return 'incorrect'
         } else {
+            const correctlyGuessedCount = guess
+                .filter((l, i) => state.word[i] === l)
+                .filter(l => l === guess[charNum])
+                .length;
+            const countInWord = state.word.filter(l => l === guess[charNum]).length;
+
+            if(correctlyGuessedCount === countInWord) return 'incorrect';
+
+            const incorrectIndexes = guess.map((_l, i) => i)
+                .filter(i => guess[i] === guess[charNum])
+                .filter(i => guess[i] !== state.word[i]);
+            console.log('chad', incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity, charNum);
+            if((incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity) >= charNum) return 'partial';
+
             return 'incorrect';
+
         }
     }
 }
