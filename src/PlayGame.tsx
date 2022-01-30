@@ -53,13 +53,13 @@ const getLetterDisplayState = (rowNum: number, charNum: number, state: KeyEntryS
                 .length;
             const countInWord = state.word.filter(l => l === guess[charNum]).length;
 
-            if(correctlyGuessedCount === countInWord) return 'incorrect';
+            if (correctlyGuessedCount === countInWord) return 'incorrect';
 
             const incorrectIndexes = guess.map((_l, i) => i)
                 .filter(i => guess[i] === guess[charNum])
                 .filter(i => guess[i] !== state.word[i]);
             console.log('chad', incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity, charNum);
-            if((incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity) >= charNum) return 'partial';
+            if ((incorrectIndexes?.[countInWord - correctlyGuessedCount - 1] ?? Infinity) >= charNum) return 'partial';
 
             return 'incorrect';
 
@@ -81,7 +81,7 @@ const GameRow = (props: { rowNum: number }): JSX.Element => {
     </div>
 }
 
-const GameBoard = (props: { guesses: { [k: number]: string[] } }): JSX.Element => {
+export const GameBoard = (props: { guesses: { [k: number]: string[] } }): JSX.Element => {
     return <div className="grid grid-rows-6 gap-1 w-[346px] h-[414px] md:w-[375px] md:h-[450px] mx-auto select-none">
         {[0, 1, 2, 3, 4, 5].map(it => <GameRow key={it} rowNum={it}/>)}
     </div>
@@ -120,7 +120,7 @@ interface AddWordAction extends AppAction {
     word: string;
 }
 
-const getCurrentGuess = (guesses: { [k: number]: string[] }): number => {
+export const getCurrentGuess = (guesses: { [k: number]: string[] }): number => {
     const guessKeys = Object.keys(guesses).map((k) => parseInt(k, 10))
     return Math.max(...guessKeys);
 }
@@ -152,21 +152,10 @@ const EndModal = (props: { clear: () => void, endState: KeyEntryState }) => {
             return emoji[getLetterDisplayState(row, idx, endState)]
         }).join('')).join('\n')
 
-        const finalStr = `${resultsStr}\n${emojiStr}`
+        const finalStr = `${resultsStr}\n${emojiStr}\n${endState.id}`
 
-        if (navigator.share) {
-            navigator.share({
-                title: resultsStr,
-                url: `https://worduel.app/${endState.id}`,
-                text: finalStr
-            }).then(() => {
-                console.log('Thanks for sharing!');
-            })
-                .catch(console.error);
-        } else {
-            await navigator.clipboard.writeText(finalStr)
-            setCopied(true)
-        }
+        await navigator.clipboard.writeText(finalStr)
+        setCopied(true)
     }
 
     const clicked = async (event: React.MouseEvent<HTMLElement>) => {
@@ -175,7 +164,9 @@ const EndModal = (props: { clear: () => void, endState: KeyEntryState }) => {
         }
     }
 
-    return <div className="absolute top-0 w-full h-full bg-stone-500/50 grid place-items-center" onClick={clicked}>
+    return <div
+        className="transition-opacity ease-in-out delay-1000 absolute top-0 w-full h-full bg-stone-500/50 grid place-items-center"
+        onClick={clicked}>
         <div className="p-10 bg-stone-500 rounded-xl flex flex-col items-center" onClick={() => {
         }}>
             <h1 className="text-6xl font-bold"> You {endState.lost ? 'Lost.' : 'Won!'} </h1>
@@ -193,11 +184,14 @@ const EndModal = (props: { clear: () => void, endState: KeyEntryState }) => {
 }
 
 const getLetterStatuses = (state: KeyEntryState): Record<string, LetterStatus> => {
-    
-    const letterGuessesByIndex = Object.values(state.guesses).flatMap(guess => guess.map((letter, idx) => ({letter, idx})))
+
+    const letterGuessesByIndex = Object.values(state.guesses).flatMap(guess => guess.map((letter, idx) => ({
+        letter,
+        idx
+    })))
 
     return letterGuessesByIndex.reduce<Record<string, LetterStatus>>((acc, {letter, idx}) => {
-        if(acc[letter] === 'correct') {
+        if (acc[letter] === 'correct') {
             return acc;
         }
         if (state.word[idx] === letter) {
@@ -215,7 +209,7 @@ const saveToLocalStorage = <T, U>(fun: (state: T, action: U) => T): (state: T, a
         const newState = fun(state, action);
         if ('id' in newState) {
             const typedState = newState as unknown as KeyEntryState;
-            if(typedState.id){
+            if (typedState.id) {
                 window.localStorage.setItem(typedState.id, JSON.stringify(state))
             }
         }
@@ -266,7 +260,9 @@ export function PlayGame() {
                 } else if (current?.length === 5 && action.key.toLowerCase() === 'enter') {
                     if (words.includes(current.join(''))) {
                         const endCheck = checkForEnd(state)
-                        setEnd(endCheck.end);
+                        setTimeout(() => {
+                            setEnd(endCheck.end);
+                        }, 1200)
                         return {
                             ...state,
                             lost: !endCheck.won,
@@ -336,16 +332,18 @@ export function PlayGame() {
             <div
                 className="bg-stone-900 text-slate-50 flex flex-col justify-between items-center bottom-0 h-device-full">
                 <div>
-                    <h1 className="text-3xl md:text-6xl w-full text-center md:p-4 font-bold"> Worduel </h1>
-                    {state.selectedInvalidWord
-                        ? <div className="flex flex-col items-center">
-                            <div
-                                className="text-center bg-stone-50 text-stone-900 text-2xl p-2 md:my-8 my-2 rounded-lg">
-                                {state.selectedInvalidWord ? 'Not in word list' : null}
-                            </div>
+                    <h1 className="text-3xl w-full text-center md:p-4 font-bold"> Worduel </h1>
+                    <div className="flex flex-col items-center">
+                        <div
+                            className={clsx(
+                                "text-center text-stone-50 text-xl my-2 rounded-lg",
+                                {
+                                    visible: state.selectedInvalidWord,
+                                    invisible: !state.selectedInvalidWord
+                                })}>
+                            Not in word list
                         </div>
-                        : null
-                    }
+                    </div>
                 </div>
                 <GameBoard guesses={state.guesses}/>
                 <Keyboard context={compilerMadeHappy}/>
